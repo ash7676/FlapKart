@@ -3,6 +3,7 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRouter");
 const productRouter = require("./routes/productRouter");
 const cartRouter = require("./routes/cartRouter");
+const orderRouter =  require('./routes/orderRouter')
 const mongoose = require("mongoose");
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/product", productRouter);
 app.use("/cart", cartRouter);
+app.use('/order',orderRouter);
 
 const PORT = process.env.PORT;
 const ENV = process.env.ENV;
