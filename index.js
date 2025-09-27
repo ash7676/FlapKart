@@ -5,9 +5,12 @@ const productRouter = require("./routes/productRouter");
 const cartRouter = require("./routes/cartRouter");
 const orderRouter =  require('./routes/orderRouter')
 const mongoose = require("mongoose");
+const { loggerMiddleware } = require("./middlewares/loggerMiddleware");
 const app = express();
 
 app.use(express.json());
+app.use(loggerMiddleware);
+
 app.use("/auth", authRoutes);
 app.use("/product", productRouter);
 app.use("/cart", cartRouter);
