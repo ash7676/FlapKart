@@ -1,7 +1,13 @@
 const { default: mongoose } = require("mongoose");
 const models = require("../models");
 const { successResponse, errorResponse } = require("../utils/response");
-const orderConstants = require("../constants/orderConstants");
+const {
+  PENDING,
+  PAID,
+  SHIPPED,
+  DELIVERED,
+  CANCELLED,
+} = require("../constants/orderConstants");
 
 const placeOrder = async function (req, res, next) {
   try {
@@ -26,7 +32,7 @@ const placeOrder = async function (req, res, next) {
 
     //check if the user has a pending order, if yes throw response
     const hasPendingOrder = await models.orders.findOne({
-      status: orderConstants.PENDING,
+      status: PENDING,
       userId: new mongoose.Types.ObjectId(userId),
     });
     if (hasPendingOrder)
@@ -61,13 +67,62 @@ const placeOrder = async function (req, res, next) {
       userId,
       items: cartItems,
       totalAmount: totalOrderAmount,
-      status: orderConstants.PENDING,
+      status: PENDING,
     });
     if (newOrder) {
       return successResponse(res, "order created", newOrder.toObject());
     } else {
       return errorResponse(res, "failed to create order", {});
     }
+  } catch (err) {
+    next(err);
+  }
+};
+
+//after payment is success, the webhook needs to set order status as paid
+const updateOrderStatus = async function (req, res, next) {
+  try {
+    const orderId = req.params.orderId;
+    const userId = req.params.userId;
+    const orderStatus = req.params.orderStatus;
+
+    //check if order id valid obejct id
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return errorResponse(res, "invalid order id!", {});
+    }
+
+    //check if user id is valid object id
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return errorResponse(res, "invalid user id!", {});
+    }
+
+    //check order status
+    const allowedStatuses = [PENDING, PAID, SHIPPED, DELIVERED, CANCELLED];
+    if (!allowedStatuses.includes(orderStatus)) {
+      return errorResponse(res, "invalid order status!", {});
+    }
+
+    ///update order status
+    const updatedOrder = await models.orders.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(orderId),
+        userId: new mongoose.Types.ObjectId(userId),
+      },
+      { $set: { status: orderStatus } },
+      { new: true, runValidators: true }
+    );
+    if (!updatedOrder) {
+      return errorResponse(
+        res,
+        "failed to update the order/order not found",
+        {}
+      );
+    }
+    return successResponse(
+      res,
+      `order:${orderId} has been updated with status:-${updatedOrder.status}`,
+      { updatedOrder }
+    );
   } catch (err) {
     next(err);
   }
@@ -84,4 +139,5 @@ const viewOrder = function (req, res, next) {
 module.exports = {
   placeOrder,
   viewOrder,
+  updateOrderStatus,
 };
