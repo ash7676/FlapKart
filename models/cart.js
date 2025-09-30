@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const db =  require("../utils/db")
 const CartSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -22,5 +22,4 @@ const CartSchema = new mongoose.Schema({
     },
   ],
 });
-
 module.exports =  mongoose.model("carts",CartSchema)

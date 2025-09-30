@@ -1,3 +1,4 @@
+//-------------DEMONSTRATES A SINGLETON PATTERN--------------//
 class Logger {
   constructor() {
     if (Logger.instance) {
