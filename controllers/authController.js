@@ -2,6 +2,8 @@ const models = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { successResponse, errorResponse } = require("../utils/response");
+const Logger = require("../utils/logger");
+let logger = new Logger();
 
 const signUp = async function (req, res, next) {
   try {
@@ -47,12 +49,11 @@ const signIn = async function (req, res, next) {
     if (!passwordMatch) return errorResponse(res, "Invalid password", {}, 401);
 
     const token = await jwt.sign(
-      { email: userExists.email,id: userExists._id.toString()
-       },
+      { email: userExists.email, id: userExists._id.toString() },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_ACCESSTKN_EXPIRY }
     );
-    console.log("jwt---", token);
+    logger.log("-------user signed in!-------");
     return successResponse(res, "user signed in successfully", {
       user: {
         email: userExists.email,
